@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block titulo %}Criar Usuário{% endblock %}
+{% block conteudo %}
+<div class="container mt-5">
+  <div class="card shadow">
+    <div class="card-header bg-dark text-white">
+      <h5 class="mb-0">Cadastro de Usuário</h5>
+    </div>
+    <div class="card-body">
+      <form action="/criar_usuario" method="POST">
+        <div class="mb-3">
+          <label>Nome</label>
+          <input type="text" name="nome" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label>Nome de usuário</label>
+          <input type="text" name="nome_usuario" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+          <label>Email</label>
+          <input type="email" name="email" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label>Senha</label>
+          <input type="password" name="senha" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label>Tipo de usuário</label>
+          <select name="tipo" class="form-select">
+  <option value="funcionario" selected>Funcionário</option>
+  <option value="vendedor">Vendedor</option>
+  <option value="admin">Administrador</option>
+          </select>
+        </div>
+        <div class="text-end">
+          <button type="submit" class="btn btn-success">Criar Usuário</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

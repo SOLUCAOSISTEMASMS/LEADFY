@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block conteudo %}
+<div class="container mt-5">
+  <div class="card shadow-sm">
+    <div class="card-header bg-warning text-white">
+      <h4 class="mb-0"><i class="bi bi-pencil-square"></i> Editar Produto</h4>
+    </div>
+
+    <div class="card-body">
+      <form id="formEditarProduto" class="row g-3">
+        <div class="col-md-6">
+          <label for="nome" class="form-label">Nome do Produto</label>
+          <input type="text" class="form-control" id="nome" name="nome" value="{{ produto.nome }}" required>
+        </div>
+
+        <div class="col-md-6">
+          <label for="valor" class="form-label">Valor (R$)</label>
+          <input type="text" class="form-control" id="valor" name="valor" value="{{ '%.2f' | format(produto.valor) | replace('.', ',') }}" required>
+        </div>
+
+        <div class="col-12 d-flex justify-content-start align-items-center mt-3">
+          <button type="submit" class="btn btn-primary me-2">
+            <i class="bi bi-check-circle"></i> Atualizar Produto
+          </button>
+          <a href="{{ url_for('produto.listar_produto_html') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left-circle"></i> Voltar
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- 💰 Máscara para campo valor -->
+<script>
+  document.getElementById('valor').addEventListener('input', function (e) {
+    let valor = e.target.value.replace(/\D/g, '');
+    if (valor.length >= 3) {
+      valor = (parseInt(valor) / 100).toFixed(2).replace('.', ',');
+      e.target.value = valor;
+    }
+  });
+</script>
+
+<!-- 🚀 Envio do formulário -->
+<script>
+  document.getElementById('formEditarProduto').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const nome = e.target.nome.value.trim();
+    const valorRaw = e.target.valor.value.replace(',', '.');
+    const valor = parseFloat(valorRaw);
+
+    if (!nome || isNaN(valor)) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Campos inválidos',
+        text: 'Preencha o nome e o valor corretamente antes de atualizar.',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
+    try {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+      const res = await fetch(`/produto/api/produto/{{ produto.id }}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ nome, valor })
+      });
+
+      if (res.ok) {
+        const resposta = await res.json();
+        Swal.fire({
+          icon: 'success',
+          title: 'Produto atualizado!',
+          text: resposta.mensagem || 'O produto foi atualizado com sucesso.',
+          confirmButtonText: 'OK'
+        }).then(() => {
+          window.location.href = '/produto/listar';
+        });
+      } else {
+        const erro = await res.json();
+        Swal.fire({
+          icon: 'error',
+          title: 'Erro!',
+          text: erro.mensagem || 'Não foi possível atualizar o produto.',
+          confirmButtonText: 'OK'
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Falha na requisição',
+        text: 'Verifique sua conexão ou tente novamente.',
+        confirmButtonText: 'Fechar'
+      });
+    }
+  });
+</script>
+{% endblock %}

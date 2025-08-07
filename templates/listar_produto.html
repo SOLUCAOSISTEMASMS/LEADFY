@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block conteudo %}
+<div class="container mt-5">
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+      
+      <h5 class="mb-0"><i class="bi bi-boxes"></i> Lista de Produtos</h5>
+      
+    </div>
+    
+
+    <div class="card-body">
+      <table class="table table-striped table-hover table-bordered">
+        <thead class="table-secondary">
+          <tr>
+            <th>Nome</th>
+            <th>Valor (R$)</th>
+            <th style="width: 180px;">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for produto in produtos %}
+          <tr>
+            <td>{{ produto.nome }}</td>
+            <td>R$ {{ '%.2f' | format(produto.valor) }}</td>
+            <td>
+              <a href="{{ url_for('produto.editar_produto_html', id=produto.id) }}" class="btn btn-sm btn-outline-primary me-2">
+                <i class="bi bi-pencil-square"></i> Editar
+              </a>
+              <button class="btn btn-sm btn-outline-danger" onclick="excluirProduto({{ produto.id }})">
+                <i class="bi bi-trash3"></i> Excluir
+              </button>
+            </td>
+          </tr>
+          
+          {% endfor %}
+        </tbody>
+        
+      </table>
+      <a href="{{ url_for('produto.novo_produto_html') }}" class="btn btn-success btn-sm">
+        <i class="bi bi-plus-circle"></i> Novo Produto
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+  const csrfToken = "{{ csrf_token() }}";
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  async function excluirProduto(id) {
+    const confirmacao = await Swal.fire({
+      title: 'Confirmar exclusão',
+      text: 'Deseja realmente excluir este produto?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sim, excluir',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#6c757d'
+    });
+
+    if (!confirmacao.isConfirmed) return;
+
+    try {
+      const res = await fetch(`/produto/api/produto/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+           'X-CSRFToken': csrfToken
+        }
+      });
+
+      const contentType = res.headers.get("content-type");
+
+      if (res.ok && contentType && contentType.includes("application/json")) {
+        const resposta = await res.json();
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Produto excluído!',
+          text: resposta.mensagem || 'O produto foi removido com sucesso.',
+          confirmButtonText: 'OK'
+        }).then(() => {
+          window.location.reload();
+        });
+
+      } else {
+        let mensagemErro = 'Não foi possível excluir o produto.';
+        if (contentType && contentType.includes("application/json")) {
+          const resposta = await res.json();
+          mensagemErro = resposta.mensagem || mensagemErro;
+        } else {
+          const texto = await res.text();
+          console.warn("Resposta inesperada do servidor:", texto);
+          mensagemErro = 'Resposta inesperada do servidor.';
+        }
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Erro ao excluir',
+          text: mensagemErro,
+          confirmButtonText: 'OK'
+        });
+      }
+    } catch (err) {
+      console.error("Erro na requisição:", err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro inesperado',
+        text: 'Ocorreu um erro ao tentar excluir o produto.',
+        confirmButtonText: 'OK'
+      });
+    }
+  }
+</script>
+{% endblock %}

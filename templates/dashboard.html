@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+{% block conteudo %}
+
+{% set cores_disponiveis = [
+  'bg-primary', 'bg-success', 'bg-danger', 'bg-warning', 'bg-info', 'bg-dark'
+] %}
+{% macro cor_aleatoria(i) %}
+  {{ cores_disponiveis[i % cores_disponiveis|length] }}
+{% endmacro %}
+<style>
+  .grafico-fundo {
+  background: linear-gradient(135deg, #e0f7fa, #fce4ec);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+</style>
+
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+   <h2>Bem-vindo ao <strong>LeadFy</strong>, o gestor de leads da <strong>Solução Sistemas</strong>!</h2>
+    <a href="{{ url_for('criar_cliente') }}" class="btn btn-primary">
+      <i class="bi bi-person-video2"></i> Novo Cliente
+    </a>
+    <a href="{{ url_for('criar_lead') }}" class="btn btn-primary">
+      <i class="bi bi-person-video2"></i> Novo Lead
+    </a>
+  </div>
+  
+
+  <!-- 👥 Cards de Clientes -->
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="card text-white bg-orange shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-person-video2"></i> Total de Clientes</h5>
+        <p class="fs-3">{{ total_clientes }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card text-white bg-blue shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-person-check-fill"></i> Clientes Ativos</h5>
+        <p class="fs-3">{{ clientes_ativos }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card text-white bg-red shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-person-x-fill"></i> Clientes Inativos</h5>
+        <p class="fs-3">{{ clientes_inativos }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 👤 Cards de Leads -->
+<div class="row g-3 mt-3">
+  <div class="col-md-4">
+    <div class="card text-white bg-ciano shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-person-plus-fill"></i> Total de Leads</h5>
+        <p class="fs-3">{{ total_leads }}</p>
+      </div>
+    </div>
+  </div>
+
+  {% for nome, cor, count in leads_por_status %}
+  <div class="col-md-4">
+    <div class="card text-white shadow-sm" style="background-color: {{ cor }};">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-flag-fill"></i> {{ nome }}</h5>
+        <p class="fs-3">{{ count }}</p>
+      </div>
+    </div>
+  </div>
+{% endfor %}
+</div>
+<!-- 📊 Gráfico por origem -->
+{% if origens and totais %}
+  <div class="card shadow-sm border-0 mt-5 grafico-card">
+    <div class="card-header bg-success bg-gradient text-white d-flex align-items-center">
+      <i class="bi bi-graph-up me-2 fs-5"></i>
+      <h5 class="mb-0">Distribuição por Origem dos Leads</h5>
+    </div>
+    <div class="card-body text-center grafico-fundo">
+      <canvas id="graficoOrigem" height="100" style="max-width:450px; width:100%; margin:auto;"></canvas>
+    </div> <!-- 🔒 esse fechamento estava faltando -->
+  </div>
+{% else %}
+  <div class="alert alert-info text-center mt-3">
+    Nenhum dado disponível para o gráfico de origem dos leads.
+  </div>
+{% endif %}
+
+  <!-- 🕒 Últimos Clientes -->
+  <div class="card shadow-sm border-0 mt-4">
+  <div class="card-header bg-lavanda text-white d-flex align-items-center">
+    <i class="bi bi-person-lines-fill me-2 fs-5"></i>
+    <h5 class="mb-0">Últimos Clientes Cadastrados</h5>
+  </div>
+  <div class="card-body">
+
+      <table class="table table-striped align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Nome</th>
+            <th>Data de Cadastro</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cliente in ultimos_clientes %}
+          <tr>
+            <td>{{ cliente.nome_fantasia or cliente.razao_social or "Sem nome" }}</td>
+            <td>{{ cliente.data_cadastro.strftime('%d/%m/%Y') }}</td>
+            <td>
+              <span class="badge bg-{{ 'success' if cliente.status == 'ativo' else 'secondary' }}">
+                {{ cliente.status.title() }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 🕒 Últimos Leads -->
+  <div class="card shadow-sm border-0 mt-4">
+  <div class="card-header  bg-rosado text-white d-flex align-items-center">
+    <i class="bi bi-clock-history me-2 fs-5"></i>
+    <h5 class="mb-0">Últimos Leads Cadastrados</h5>
+  </div>
+  <div class="card-body">
+
+      <table class="table table-striped align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Nome</th>
+            <th>Origem</th>
+            <th>Status</th>
+            <th>Data</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for lead in ultimos_leads %}
+          <tr>
+            <td>
+              {% if lead.cliente %}
+                {{ lead.cliente.nome_fantasia or lead.cliente.razao_social or "Sem nome" }}
+              {% else %}
+                <span class="text-muted">Sem cliente</span>
+              {% endif %}
+            </td>
+            <td>{{ lead.origem.nome if lead.origem else "—" }}</td>
+            <td>
+              {% if lead.status %}
+                <span class="badge" style="background-color: {{ lead.status.cor or '#6c757d' }}">
+                  {{ lead.status.nome }}
+                </span>
+              {% else %}
+                <span class="badge bg-secondary">Sem status</span>
+              {% endif %}
+            </td>
+            <td>{{ lead.data_cadastro.strftime('%d/%m/%Y') }}</td>
+          </tr>
+          {% endfor %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{% if alerta_leads_hoje %}
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Atenção!',
+      text: '{{ alerta_leads_hoje }}',
+      confirmButtonText: 'OK'
+    });
+  });
+  </script>
+  {% endif %}
+<script>
+  $(document).ready(function () {
+    const origens = {{ origens | default([]) | tojson | safe }};
+    const totais = {{ totais | default([]) | tojson | safe }};
+    const labelsComTotais = origens.map((origem, i) => `${origem}: ${totais[i]}`);
+
+    const canvas = document.getElementById('graficoOrigem');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: labelsComTotais,
+          datasets: [{
+            data: totais,
+            backgroundColor: ['#4CAF50', '#2196F3', '#FFC107', '#E91E63', '#9C27B0'],
+            borderColor: '#fff',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'right' },
+            title: {
+              display: true,
+              text: 'Gráfico por Origem dos Leads',
+              font: { size: 16 }
+            }
+          }
+        }
+      });
+    }
+  });
+</script>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

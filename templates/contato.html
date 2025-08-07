@@ -1,0 +1,4 @@
+<h4>Contato realizado em {{ contato.data.strftime('%d/%m/%Y %H:%M') }}</h4>
+<p><strong>Assunto:</strong> {{ contato.assunto }}</p>
+<p>{{ contato.descricao }}</p>
+<a href="{{ url_for('detalhes_cliente', cliente_codigo=contato.cliente.codigo) }}" class="btn btn-secondary">Voltar ao cliente</a>

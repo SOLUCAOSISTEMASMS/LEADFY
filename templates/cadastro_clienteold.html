@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block titulo %}Cadastrar Cliente{% endblock %}
+{% block conteudo %}
+<div class="container mt-4">
+  <div class="card shadow">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">Cadastro de Cliente</h5>
+    </div>
+    <div class="card-body">
+      <form action="/salvar_cliente" method="POST">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label>Nome</label>
+            <input type="text" name="nome" class="form-control" required>
+          </div>
+          <div class="col-md-6">
+            <label>Email</label>
+            <input type="email" name="email" class="form-control">
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label>Telefone</label>
+            <input type="text" name="telefone" class="form-control">
+          </div>
+          <div class="col-md-6">
+            <label>Empresa</label>
+            <input type="text" name="empresa" class="form-control">
+          </div>
+        </div>
+        <div class="mb-3 text-end">
+          <button type="submit" class="btn btn-success">Salvar Cliente</button>
+          <form action="/salvar_cliente" method="POST">
+
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

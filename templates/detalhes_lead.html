@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% block titulo %}Detalhes do Lead{% endblock %}
+{% block conteudo %}
+<style>
+  body {
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #e0f7fa, #fce4ec);
+    color: #2b2d42;
+  }
+
+  h3, .card-header {
+    font-weight: 600;
+    color: #3a0ca3;
+  }
+
+  .card {
+    border-radius: 0.6rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    border: none;
+    background: linear-gradient(135deg, #edf7ff, #fae8f0);
+  }
+
+  .card-header {
+    background-color: #e0c3fc;
+    color: #3c096c;
+    border-bottom: 1px solid #dee2e6;
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .card-body {
+    padding: 1rem 1.5rem;
+  }
+
+  .badge {
+    font-size: 0.9rem;
+    border-radius: 0.5rem;
+    padding: 0.4em 0.7em;
+    background-color: #ff6b6b;
+    color: #fff;
+  }
+
+  .btn-outline-success {
+    border-color: #00b4d8;
+    color: #00b4d8;
+  }
+
+  .btn-outline-success:hover {
+    background-color: #00b4d8;
+    color: #fff;
+  }
+
+  .btn-outline-secondary {
+    border-color: #ff9f1c;
+    color: #ff9f1c;
+  }
+
+  .btn-outline-secondary:hover {
+    background-color: #ff9f1c;
+    color: #fff;
+  }
+
+  .list-group-item {
+    background: linear-gradient(135deg, #e0f7fa, #fce4ec);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    margin-bottom: 0.4rem;
+    border-radius: 0.5rem;
+    padding: 0.9rem 1rem;
+    color: #2b2d42;
+  }
+
+  .list-group-item:nth-child(even) {
+    background-color: #f0f8ff;
+  }
+
+  .container-fluid {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
+  a {
+    text-decoration: none;
+    color: #3a0ca3;
+  }
+
+  a:hover {
+    text-decoration: underline;
+    color: #7209b7;
+  }
+
+  .badge-ligacao { background-color: #ffbe0b; color: #212529; }
+  .badge-whatsapp { background-color: #25d366; color: #fff; }
+  .badge-e-mail { background-color: #3a86ff; color: #fff; }
+  .badge-visita { background-color: #ff006e; color: #fff; }
+  .badge-follow-up { background-color: #06d6a0; color: #fff; }
+  .badge-outro { background-color: #adb5bd; color: #212529; }
+</style>
+
+<div class="container-fluid mt-4">
+  <div class="d-flex justify-content-between align-items-center flex-wrap mb-4 gap-2">
+    <h3 class="d-flex align-items-center mb-0">
+      <i class="bi bi-person-lines-fill text-primary fs-3 me-2"></i>
+      <span class="fs-4 fw-semibold">Detalhes do Lead</span>
+    </h3>
+    <div class="btn-group">
+      <a href="{{ url_for('nova_atividade', lead_id=lead.id) }}" class="btn btn-outline-success">
+        <i class="bi bi-journal-plus"></i> Registrar Atividade
+      </a>
+      <a href="{{ url_for('listar') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left-circle"></i> Voltar
+      </a>
+    </div>
+  </div>
+
+  <!-- Card de informações -->
+  <div class="card card-info mb-4">
+    <div class="card-header">
+      <i class="bi bi-info-circle me-1"></i> Informações do Cliente
+    </div>
+    <div class="card-body row g-4">
+      <div class="col-md-6"><strong>Cliente:</strong> {{ lead.cliente.nome_fantasia }}</div>
+      <div class="col-md-6"><strong>Contato:</strong> {{ lead.pessoa or '—' }}</div>
+      <div class="col-md-6"><strong>Email:</strong> {{ lead.cliente.email }}</div>
+      <div class="col-md-6"><strong>Telefone:</strong> {{ lead.cliente.telefone }}</div>
+      <div class="col-md-6"><strong>Origem:</strong> {{ lead.origem.nome }}</div>
+      <div class="col-md-6">
+        <strong>Status:</strong>
+        {% if lead.status %}
+          <span class="badge" style="background-color: {{ lead.status.cor }}">{{ lead.status.nome }}</span>
+        {% else %}
+          <span class="badge bg-secondary">Não definido</span>
+        {% endif %}
+      </div>
+      <div class="col-md-6">
+        <strong>Data de Retorno:</strong>
+        {{ lead.data_retorno.strftime('%d/%m/%Y') if lead.data_retorno else 'Não definida' }}
+      </div>
+      <div class="col-md-6"><strong>Interesses:</strong> {{ lead.interesses or '—' }}</div>
+      <div class="col-md-12"><strong>Observações:</strong> {{ lead.observacoes or '—' }}</div>
+    </div>
+  </div>
+
+  <!-- Card de produtos -->
+  <div class="card card-produtos mb-4">
+    <div class="card-header">
+      <i class="bi bi-box-seam me-1"></i> Produtos Relacionados
+    </div>
+    <div class="card-body">
+      {% if lead.produtos %}
+        <ul class="list-group list-group-flush">
+          {% for produto in lead.produtos %}
+            <li class="list-group-item">{{ produto.nome }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="text-muted">Nenhum produto vinculado ao lead.</div>
+      {% endif %}
+    </div>
+  </div>
+  <!-- Card de arquivamento -->
+{% if lead.arquivado_por %}
+  <div class="card card-arquivamento mb-4">
+    <div class="card-header">
+      <i class="bi bi-folder2-open me-1"></i> Informações de Arquivamento
+    </div>
+    <div class="card-body row g-4">
+      <div class="col-md-6">
+        <strong>Arquivado por:</strong> {{ lead.arquivado_por.nome_usuario }}
+      </div>
+
+      <div class="col-md-6">
+        <strong>Status:</strong>
+        {% if lead.arquivado %}
+          <span class="text-danger fw-bold">Arquivado</span>
+        {% else %}
+          <span class="text-success fw-bold">Ativo</span>
+        {% endif %}
+      </div>
+
+      {% if lead.data_arquivamento %}
+        <div class="col-md-6">
+          <strong>Data de arquivamento:</strong> {{ lead.data_arquivamento.strftime('%d/%m/%Y %H:%M') }}
+        </div>
+      {% endif %}
+
+      {% if lead.data_desaquivamento %}
+        <div class="col-md-6">
+          <strong>Data de desarquivamento:</strong> {{ lead.data_desaquivamento.strftime('%d/%m/%Y %H:%M') }}
+        </div>
+      {% endif %}
+
+      {% if lead.motivo_arquivamento %}
+        <div class="col-md-12">
+          <strong>Motivo:</strong> {{ lead.motivo_arquivamento }}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}
+
+  <!-- Card de atividades -->
+  <div class="card card-atividades mb-2">
+    <div class="card-header">
+      <i class="bi bi-list-check me-1"></i> Atividades Registradas
+    </div>
+    <div class="card-body">
+      {% if lead.atividades %}
+        <ul class="list-group list-group-flush">
+          {% for atividade in lead.atividades|sort(attribute='data', reverse=true) %}
+            <li class="list-group-item">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <strong>{{ atividade.usuario.nome_usuario }}</strong>
+                  <span class="text-muted small ms-1">({{ atividade.usuario.tipo|capitalize }})</span><br>
+                  <small class="text-muted">Registrado em {{ atividade.data.strftime('%d/%m/%Y') }}</small>
+                </div>
+                {% set tipo_formatado = atividade.tipo|lower|replace(' ', '-')|replace('á','a')|replace('í','i')|replace('ã','a')|replace('-','_') %}
+                <span class="badge badge-{{ tipo_formatado }}">{{ atividade.tipo }}</span>
+              </div>
+              <p class="mt-2 mb-1">{{ atividade.descricao }}</p>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="text-muted">Nenhuma atividade registrada até o momento.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+<!-- Card de arquivamento -->
+{% if lead.arquivado_por %}
+  <div class="card card-arquivamento mb-4">
+    <div class="card-header">
+      <i class="bi bi-folder2-open me-1"></i> Informações de Arquivamento
+    </div>
+    <div class="card-body row g-4">
+      <div class="col-md-6">
+        <strong>Arquivado por:</strong> {{ lead.arquivado_por.nome_usuario }}
+      </div>
+
+      <div class="col-md-6">
+        <strong>Status:</strong>
+        {% if lead.arquivado %}
+          <span class="text-danger fw-bold">Arquivado</span>
+        {% else %}
+          <span class="text-success fw-bold">Ativo</span>
+        {% endif %}
+      </div>
+
+      {% if lead.data_arquivamento %}
+        <div class="col-md-6">
+          <strong>Data de arquivamento:</strong> {{ lead.data_arquivamento.strftime('%d/%m/%Y %H:%M') }}
+        </div>
+      {% endif %}
+
+      {% if lead.data_desaquivamento %}
+        <div class="col-md-6">
+          <strong>Data de desarquivamento:</strong> {{ lead.data_desaquivamento.strftime('%d/%m/%Y %H:%M') }}
+        </div>
+      {% endif %}
+
+      {% if lead.motivo_arquivamento %}
+        <div class="col-md-12">
+          <strong>Motivo:</strong> {{ lead.motivo_arquivamento }}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}
+
+{% block scripts %}
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <script>
+          Swal.fire({
+            icon: '{{ category }}',
+            title: '{{ "Atenção!" if category == "warning" else "Concluído!" }}',
+            text: '{{ "Atividade registrada com sucesso!" if message == "atividade_registrada" else message }}',
+            confirmButtonColor: '{{ "#d33" if category == "warning" else "#3085d6" }}',
+            confirmButtonText: 'OK'
+          });
+        </script>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+{% endblock %}

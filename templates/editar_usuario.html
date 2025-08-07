@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% block titulo %}Editar Usuário{% endblock %}
+{% block conteudo %}
+
+<div class="container mt-5">
+  <div class="card shadow">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">Editar Usuário</h5>
+    </div>
+    <div class="card-body">
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      {% if current_user.tipo in ['admin', 'gerente'] %}
+      <form method="POST" action="{{ url_for('editar_usuario', id=usuario.id) }}">
+
+        <!-- 🔗 Abas -->
+        <ul class="nav nav-tabs" id="usuarioEditTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="dados-tab" data-bs-toggle="tab" data-bs-target="#dados" type="button" role="tab">Dados principais</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="extras-tab" data-bs-toggle="tab" data-bs-target="#extras" type="button" role="tab">Dados adicionais</button>
+          </li>
+        </ul>
+
+        <div class="tab-content mt-3" id="usuarioEditTabsContent">
+
+          <!-- 🧑 Aba: Dados principais -->
+          <div class="tab-pane fade show active" id="dados" role="tabpanel">
+
+            <div class="row">
+              <div class="mb-3 col-md-2">
+                <label class="form-label">Código</label>
+                <input type="text" class="form-control text-center" value="{{ usuario.codigo }}" readonly>
+              </div>
+              <div class="mb-3 col-md-5">
+                <label class="form-label">Nome</label>
+                <input type="text" name="nome" class="form-control" value="{{ usuario.nome }}" required>
+              </div>
+              <div class="mb-3 col-md-5">
+                <label class="form-label">Nome de usuário</label>
+                <input type="text" name="nome_usuario" class="form-control" value="{{ usuario.nome_usuario }}" required>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="mb-3 col-md-6">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" value="{{ usuario.email }}">
+              </div>
+              <div class="mb-3 col-md-6">
+                <label class="form-label">Nova senha (opcional)</label>
+                <input type="password" name="senha" class="form-control">
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Tipo</label>
+              <select name="tipo" class="form-select">
+                <option value="vendedor" {% if usuario.tipo == 'vendedor' %}selected{% endif %}>Vendedor</option>
+                <option value="gerente" {% if usuario.tipo == 'gerente' %}selected{% endif %}>Gerente</option>
+                <option value="admin" {% if usuario.tipo == 'admin' %}selected{% endif %}>Administrador</option>
+              </select>
+            </div>
+
+            {% if usuario.empresa_id %}
+    <p><strong>Empresa:</strong> {{ usuario.empresa.nome }}</p>
+    <p><strong>CNPJ:</strong> {{ usuario.empresa.cpf_cnpj }}</p>
+{% endif %}
+          </div>
+
+          <!-- 📋 Aba: Dados adicionais -->
+          <div class="tab-pane fade" id="extras" role="tabpanel">
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label>Telefone</label>
+                <input type="text" name="telefone" class="form-control" value="{{ usuario.telefone }}">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label>Documento</label>
+                <input type="text" name="documento" class="form-control" value="{{ usuario.documento }}">
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label>Rua</label>
+                <input type="text" name="rua" class="form-control" value="{{ usuario.rua }}">
+              </div>
+              <div class="col-md-2 mb-3">
+                <label>Número</label>
+                <input type="text" name="numero" class="form-control" value="{{ usuario.numero }}">
+              </div>
+              <div class="col-md-3 mb-3">
+                <label>Bairro</label>
+                <input type="text" name="bairro" class="form-control" value="{{ usuario.bairro }}">
+              </div>
+              <div class="col-md-3 mb-3">
+                <label>CEP</label>
+                <input type="text" name="cep" class="form-control" value="{{ usuario.cep }}">
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label>Cidade</label>
+                <input type="text" name="cidade" class="form-control" value="{{ usuario.cidade }}">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label>Estado</label>
+                <input type="text" name="estado" class="form-control" value="{{ usuario.estado }}">
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label>Data de nascimento</label>
+                <input type="date" name="nascimento" class="form-control" 
+       value="{{ usuario.nascimento.strftime('%Y-%m-%d') if usuario.nascimento }}">
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ✅ Botões -->
+        <div class="text-end mt-3">
+          <a href="{{ url_for('listar_funcionarios') }}" class="btn btn-outline-secondary me-2">Cancelar</a>
+          <button type="submit" class="btn btn-outline-primary me-2">
+            <i class="bi bi-check-circle-fill"></i> Atualizar
+          </button>
+          
+        </div>
+
+      </form>
+      {% else %}
+      <!-- 🔒 Modo leitura para usuários não-admin -->
+      <div class="card-body">
+        <p><strong>Nome:</strong> {{ usuario.nome or '—' }}</p>
+        <p><strong>Nome de usuário:</strong> {{ usuario.nome_usuario or '—' }}</p>
+        <p><strong>Email:</strong> {{ usuario.email or '—' }}</p>
+        <p><strong>Tipo:</strong> {{ usuario.tipo or '—' }}</p>
+        <div class="alert alert-warning mt-3">
+          ⚠️ Você não tem permissão para editar este usuário.
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

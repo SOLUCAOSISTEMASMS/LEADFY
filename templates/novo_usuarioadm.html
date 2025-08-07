@@ -1,0 +1,15 @@
+<form method="POST" action="{{ url_for('cadastro_empresa') }}">
+  <h5>Dados da Empresa</h5>
+  <input type="text" name="nome_empresa" required>
+  <input type="text" name="cnpj" required>
+  <input type="text" name="telefone" required>
+  <input type="text" name="ramo" required>
+
+  <h5>Usuário Administrador</h5>
+  <input type="text" name="nome_usuario" required>
+  <input type="email" name="email" required>
+  <input type="text" name="login" required>
+  <input type="password" name="senha" required>
+
+  <button type="submit">Finalizar Cadastro</button>
+</form>

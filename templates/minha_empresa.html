@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% block titulo %}Minha Empresa{% endblock %}
+{% block conteudo %}
+
+<div class="container mt-4">
+  <h3><i class="bi bi-building-fill"></i> Dados da Empresa</h3>
+
+  {% if current_user.tipo == 'admin' and empresa %}
+    <!-- ✅ ADMIN logado via vínculo direto ou via sessão CNPJ pode editar -->
+
+    <form method="POST" action="{{ url_for('minha_empresa') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      
+      
+      <div class="mb-3">
+        <label for="nome" class="form-label">Nome da Empresa</label>
+        <input type="text" class="form-control" id="nome" name="nome" value="{{ empresa.nome or '' }}" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="cpf_cnpj" class="form-label">
+          <i class="fas fa-id-card me-2"></i> CPF ou CNPJ
+        </label>
+        <input type="text" class="form-control" id="cpf_cnpj" name="cpf_cnpj" value="{{ empresa.cpf_cnpj or '' }}" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="telefone" class="form-label">Telefone</label>
+        <input type="text" class="form-control" id="telefone" name="telefone" value="{{ empresa.telefone or '' }}">
+      </div>
+
+      <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="email" name="email" value="{{ empresa.email or '' }}">
+      </div>
+
+      <hr>
+      <h5 class="mt-4">Endereço</h5>
+
+      <div class="row g-2">
+        <div class="col-md-8">
+          <label for="endereco" class="form-label">Logradouro</label>
+          <input type="text" class="form-control" id="endereco" name="endereco" value="{{ empresa.endereco or '' }}">
+        </div>
+        <div class="col-md-1">
+          <label for="numero" class="form-label">Nº</label>
+          <input type="text" class="form-control" id="numero" name="numero" value="{{ empresa.numero or '' }}">
+        </div>
+        <div class="col-md-4">
+          <label for="cidade" class="form-label">Cidade</label>
+          <input type="text" class="form-control" id="cidade" name="cidade" value="{{ empresa.cidade or '' }}">
+        </div>
+      </div>
+
+      <div class="row g-2 mt-3">
+        <div class="col-md-4">
+          <label for="estado" class="form-label">Estado</label>
+          <input type="text" class="form-control" id="estado" name="estado" value="{{ empresa.estado or '' }}">
+        </div>
+      </div>
+
+      <div class="mb-3 mt-4">
+        <label for="representante" class="form-label">Representante</label>
+        <input type="text" class="form-control" id="representante" name="representante" value="{{ empresa.representante or '' }}">
+      </div>
+
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check-circle-fill"></i> Salvar Alterações
+      </button>
+
+      <a href="{{ url_for('listar') }}" class="btn btn-outline-secondary ms-2">
+        <i class="bi bi-arrow-left-circle"></i> Voltar
+      </a>
+    </form>
+
+  {% elif empresa %}
+    <!-- 🔒 Usuário comum ou admin sem vínculo: apenas visualização -->
+    <div class="card shadow-sm mt-3">
+      <div class="card-body">
+        <p><strong>Nome:</strong> {{ empresa.nome or '—' }}</p>
+        <p><strong>CNPJ:</strong> {{ empresa.cnpj or '—' }}</p>
+        <p><strong>Telefone:</strong> {{ empresa.telefone or '—' }}</p>
+        <p><strong>Email:</strong> {{ empresa.email or '—' }}</p>
+        <hr>
+        <h6><i class="bi bi-geo-alt-fill text-danger me-1"></i> Endereço</h6>
+        <p><strong>Logradouro:</strong> {{ empresa.endereco or '—' }} {{ empresa.numero or '' }}</p>
+        <p><strong>Cidade:</strong> {{ empresa.cidade or '—' }}</p>
+        <p><strong>Estado:</strong> {{ empresa.estado or '—' }}</p>
+        <p><strong>Representante:</strong> {{ empresa.representante or '—' }}</p>
+
+        <a href="{{ url_for('listar') }}" class="btn btn-outline-secondary mt-3">
+          <i class="bi bi-arrow-left-circle"></i> Voltar
+        </a>
+      </div>
+    </div>
+
+  {% else %}
+    <!-- ❌ Nenhuma empresa vinculada -->
+    <div class="alert alert-danger mt-4" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      Nenhuma empresa vinculada ao seu acesso.
+    </div>
+  {% endif %}
+</div>
+
+<!-- 🎉 SweetAlert: feedback visual após salvamento -->
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        {% for category, message in messages %}
+          Swal.fire({
+            icon: '{{ "success" if category == "success" else "error" }}',
+            title: '{{ "Sucesso!" if category == "success" else "Erro!" }}',
+            text: '{{ message }}',
+            confirmButtonColor: '{{ "#198754" if category == "success" else "#dc3545" }}'
+          });
+        {% endfor %}
+      });
+    </script>
+  {% endif %}
+{% endwith %}
+
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<form method="POST" action="/novo_contato/{{ cliente.codigo }}">
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <label for="data" class="form-label">Data do Contato</label>
+      <input type="datetime-local" name="data" id="data" class="form-control form-control-sm" required>
+    </div>
+    <div class="col-md-6">
+      <label for="assunto" class="form-label">Assunto</label>
+      <input type="text" name="assunto" id="assunto" class="form-control form-control-sm" required>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label for="descricao" class="form-label">Descrição</label>
+    <textarea name="descricao" id="descricao" class="form-control form-control-sm" rows="2" placeholder="Resumo rápido do contato..."></textarea>
+  </div>
+
+  <button type="submit" class="btn btn-primary btn-sm">Salvar</button>
+  <a href="{{ url_for('detalhes_cliente', cliente_codigo=cliente.codigo) }}" class="btn btn-outline-secondary btn-sm ms-2">
+    <i class="bi bi-arrow-left-circle"></i> Voltar ao cliente
+  </a>
+</form>
+{% endblock %}

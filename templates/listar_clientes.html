@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block titulo %}
+  Lista de Clientes
+{% endblock %}
+
+{% block conteudo %}
+<div class="container-fluid mt-4">
+  <form method="GET" action="{{ url_for('listar_clientes') }}" class="row g-2 mb-3 align-items-end">
+    <div class="col-md-5">
+      <input type="text" name="busca" class="form-control" placeholder="Buscar por nome, email ou empresa" value="{{ request.args.get('busca', '') }}">
+    </div>
+    <div class="col-md-auto">
+      <button type="submit" class="btn btn-outline-primary" data-bs-toggle="tooltip" title="Buscar cliente">
+        <i class="bi bi-search"></i> Buscar
+      </button>
+    </div>
+    <div class="col-md-auto ms-auto">
+      <a href="{{ url_for('criar_cliente') }}" class="btn btn-primary" data-bs-toggle="tooltip" title="Cadastrar novo cliente">
+        <i class="bi bi-person-plus-fill"></i> Novo Cliente
+      </a>
+    </div>
+  </form>
+
+  <h3 class="d-flex align-items-center mb-4" style="font-weight: 600; font-size: 1.75rem;">
+    <span class="badge text-white me-2" style="background-color: #E0BBE4; font-size: 1.4rem;">
+      <i class="bi bi-person-lines-fill"></i>
+    </span>
+    Lista de Clientes
+  </h3>
+
+  {% if clientes %}
+    <table class="table table-striped table-hover align-middle table-theme-lilas-claro">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Email</th>
+          <th>Telefone</th>
+          <th>CPF/CNPJ</th>
+          <th class="text-center">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cliente in clientes %}
+          <tr>
+            <td>{{ cliente.nome_fantasia }}</td>
+            <td>{{ cliente.email }}</td>
+            <td>{{ cliente.telefone }}</td>
+            <td>{{ cliente.cpf_cnpj }}</td>
+            <td class="text-center">
+              <div class="btn-group" role="group">
+                <a href="{{ url_for('criar_lead', cliente_codigo=cliente.codigo) }}"
+                   class="btn btn-sm btn-success"
+                   data-bs-toggle="tooltip" title="Criar novo lead">
+                  <i class="bi bi-plus-lg"></i>
+                </a>
+
+                <a href="{{ url_for('detalhes_cliente', cliente_codigo=cliente.codigo) }}"
+                   class="btn btn-sm btn-info"
+                   data-bs-toggle="tooltip" title="Ver detalhes do cliente">
+                  <i class="bi bi-eye"></i> 
+                </a>
+
+                <a href="{{ url_for('editar_cliente', cliente_codigo=cliente.codigo) }}"
+                   class="btn btn-sm btn-warning"
+                   data-bs-toggle="tooltip" title="Editar cliente">
+                  <i class="bi bi-pencil"></i> 
+                </a>
+
+                {% if current_user.tipo in ['admin', 'gerente'] %}
+                  <form action="{{ url_for('excluir_cliente', cliente_id=cliente.codigo) }}"
+                        method="post"
+                        class="d-inline delete-cliente-form">
+                    {{ form.csrf_token }}
+                    <button type="submit" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" title="Excluir cliente">
+                      <i class="bi bi-trash"></i> 
+                    </button>
+                  </form>
+                {% else %}
+                  <button type="button" class="btn btn-sm btn-secondary" data-bs-toggle="tooltip" title="Excluir não permitido"
+                          onclick="Swal.fire({
+                            icon: 'warning',
+                            title: 'Acesso negado',
+                            text: 'Você não tem permissão para excluir clientes.',
+                            confirmButtonText: 'Entendi'
+                          })">
+                    <i class="bi bi-lock-fill"></i>
+                  </button>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="alert alert-warning text-center mt-4">Nenhum cliente cadastrado ainda.</div>
+  {% endif %}
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // Ativação de tooltips Bootstrap
+  document.addEventListener('DOMContentLoaded', function () {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+  });
+
+  // Confirmação de exclusão
+  document.querySelectorAll('.delete-cliente-form').forEach(form => {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      Swal.fire({
+        title: 'Confirma a exclusão?',
+        text: 'Essa ação não pode ser desfeita.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sim, excluir',
+        cancelButtonText: 'Cancelar'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          form.submit();
+        }
+      });
+    });
+  });
+</script>
+
+<!-- Alerta pós-ação via flash -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        {% for category, msg in messages %}
+          Swal.fire({
+            icon: '{{ "success" if category|lower == "success" else "warning" if category|lower == "warning" else "error" }}',
+            title: '{{ "Sucesso!" if category|lower == "success" else "Aviso" if category|lower == "warning" else "Erro!" }}',
+            html: {{ msg|tojson }},
+            showConfirmButton: true
+          });
+        {% endfor %}
+      });
+    </script>
+  {% endif %}
+{% endwith %}
+{% endblock %}

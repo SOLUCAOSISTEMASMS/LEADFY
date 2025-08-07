@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block titulo %}
+  Gerenciar Origens de Lead
+{% endblock %}
+
+{% block conteudo %}
+<div class="container py-4">
+  <h4 class="mb-4 text-center">Gerenciar Origens de Lead</h4>
+
+  <!-- 🔍 Campo de busca -->
+  <form method="get" class="row mb-3">
+    <div class="col-md-8">
+      <input type="text" name="busca" value="{{ busca }}" class="form-control" placeholder="Buscar origem...">
+    </div>
+    <div class="col-md-4">
+      <button type="submit" class="btn btn-outline-secondary w-100">
+        <i class="bi bi-search"></i> Buscar
+      </button>
+    </div>
+  </form>
+
+  <!-- ➕ Cadastro de nova origem -->
+  <form method="post" class="row mb-4">
+    {{ form.hidden_tag() }}
+    <div class="col-md-8">
+      <input type="text" name="nome" class="form-control" placeholder="Nova origem de lead..." required>
+    </div>
+    <div class="col-md-4">
+      <button type="submit" class="btn btn-success w-100">
+        <i class="bi bi-plus-circle"></i> Adicionar Origem
+      </button>
+    </div>
+  </form>
+
+  <!-- 📋 Tabela de origens -->
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle text-center">
+      <thead class="table-light">
+        <tr>
+          <th>ID</th>
+          <th>Nome</th>
+          {% if current_user.tipo == 'admin' %}
+  <th>Ações</th>
+{% endif %}
+
+        </tr>
+      </thead>
+      <tbody>
+        {% for origem in origens %}
+        <tr>
+          <td>{{ origem.id }}</td>
+          <td>{{ origem.nome }}</td>
+          {% if current_user.tipo == 'admin' %}
+  <td>
+    <form action="{{ url_for('excluir_origem', id=origem.id) }}" method="post" class="d-inline delete-origem-form" data-origem-id="{{ origem.id }}">
+  {{ formularios_exclusao[origem.id].csrf_token }}
+  <button type="submit" class="btn btn-sm btn-outline-danger delete-origem-button">
+    <i class="bi bi-trash"></i>
+  </button>
+</form>
+  </td>
+{% endif %}
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="{% if current_user.is_admin %}3{% else %}2{% endif %}">Nenhuma origem cadastrada.</td>
+        </tr>
+        {% endfor %}
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+document.querySelectorAll('.delete-origem-form').forEach(form => {
+  form.addEventListener('submit', function (e) {
+    e.preventDefault(); // impede envio imediato
+
+    Swal.fire({
+      title: 'Tem certeza?',
+      text: 'Você não poderá reverter isso!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sim, excluir!',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch(form.action, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': form.querySelector('[name="csrf_token"]').value
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'error') {
+            Swal.fire('Erro', data.message, 'error');
+          } else {
+            Swal.fire('Excluído!', data.message, 'success').then(() => {
+              location.reload(); // recarrega a página após exclusão
+            });
+          }
+        })
+        .catch(() => {
+          Swal.fire('Erro', 'Algo deu errado ao tentar excluir.', 'error');
+        });
+      }
+    });
+  });
+});
+</script>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

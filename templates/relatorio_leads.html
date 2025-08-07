@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block titulo %}Relatório de Leads{% endblock %}
+
+{% block conteudo %}
+<style>
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    .print-area, .print-area * {
+      visibility: visible;
+    }
+    .print-area {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      padding: 20px;
+    }
+  }
+</style>
+
+<!-- 🔍 Filtros e botões visíveis na tela -->
+<div class="container mt-4">
+
+
+  <form method="GET" class="card card-body shadow-sm mb-4 filtros">
+    <div class="row g-3">
+      <div class="col-md-4">
+  <label class="form-label">Origem</label>
+  <select name="origem" class="form-select">
+    <option value="">Todas</option>
+    {% for origem in origens %}
+      <option value="{{ origem.nome }}" {% if origem.nome == request.args.get('origem') %}selected{% endif %}>
+        {{ origem.nome }}
+      </option>
+    {% endfor %}
+  </select>
+</div>
+      <div class="col-md-4">
+  <label class="form-label">Status</label>
+  <select name="status" class="form-select">
+    <option value="">Todos</option>
+    {% for status in status_leads %}
+      <option value="{{ status.id }}" style="color: {{ status.cor }}">{{ status.nome }}</option>
+    {% endfor %}
+  </select>
+</div>
+      <div class="col-md-4">
+        <label class="form-label">Período</label>
+        <div class="d-flex gap-2">
+          <input type="date" name="inicio" class="form-control" placeholder="Início">
+          <input type="date" name="fim" class="form-control" placeholder="Fim">
+        </div>
+      </div>
+    </div>
+    <div class="text-end mt-3">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-funnel-fill"></i> Filtrar
+      </button>
+    </div>
+  </form>
+
+  <div class="d-flex justify-content-end mb-3 print-export">
+    <button onclick="window.print()" class="btn btn-outline-primary">
+      <i class="bi bi-printer"></i> Imprimir
+    </button>
+  </div>
+</div>
+
+<!-- 📄 Área impressa -->
+<div class="container-fluid mt-4 print-area">
+  {% if leads %}
+  <h3><i class="bi bi-bar-chart-line-fill"></i> Relação de Leads</h3>
+  <table class="table table-bordered table-striped table-hover">
+    <thead class="table-light">
+      <tr>
+        <th>Cliente</th>
+        <th>Email</th>
+        <th>Telefone</th>
+        <th>Origem</th>
+        <th>Status</th>
+        <th>Data</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for lead in leads %}
+      <tr>
+        <td>{{ lead.cliente.nome_fantasia }}</td>
+        <td>{{ lead.email }}</td>
+        <td>{{ lead.telefone }}</td>
+        <td>{{ lead.origem.nome }}</td>
+        <td>{{ lead.status.nome }}</td>
+
+        <td>{{ lead.data_cadastro.strftime('%d/%m/%Y') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="alert alert-warning mt-4">
+    Nenhum lead encontrado com os filtros selecionados.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block head_extra %}
+<!-- Se quiser aplicar logotipo ou assinatura na impressão, dá pra incorporar aqui 😄 -->
+{% endblock %}

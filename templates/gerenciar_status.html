@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block titulo %}
+  Gerenciar Status de Lead
+{% endblock %}
+
+{% block conteudo %}
+<div class="container py-4">
+  <h4 class="mb-4 text-center">Gerenciar Status de Lead</h4>
+
+  <!-- 🔍 Campo de busca -->
+  <form method="get" class="row mb-3">
+
+    <div class="col-md-8">
+      <input type="text" name="busca" value="{{ busca }}" class="form-control" placeholder="Buscar status...">
+    </div>
+    <div class="col-md-4">
+      <button type="submit" class="btn btn-outline-secondary w-100">
+        <i class="bi bi-search"></i> Buscar
+      </button>
+    </div>
+  </form>
+
+  <!-- ➕ Cadastro de novo status -->
+  <form method="post" class="row mb-4">
+    {{ form.hidden_tag() }}
+    <div class="col-md-6 mb-2">
+      <input type="text" name="nome" class="form-control" placeholder="Nome do status..." required>
+    </div>
+    <div class="col-md-6 mb-2">
+      <input type="color" name="cor" class="form-control form-control-color" value="#0d6efd" title="Escolha uma cor">
+    </div>
+    <div class="col-12">
+      <button type="submit" class="btn btn-success w-100">
+        <i class="bi bi-plus-circle"></i> Adicionar Status
+      </button>
+    </div>
+  </form>
+
+  <!-- 📋 Tabela de status -->
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle text-center">
+      <thead class="table-light">
+        <tr>
+          <th>ID</th>
+          <th>Nome</th>
+          <th>Cor</th>
+          <th>Excluir</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for status in status_list %}
+        <tr>
+          <td>{{ status.id }}</td>
+          <td>{{ status.nome }}</td>
+          <td>
+            <span class="badge" style="background-color: {{ status.cor }};">
+              {{ status.cor }}
+            </span>
+          </td>
+          <td>
+            <!-- 🗑️ Exclusão protegida -->
+<form action="{{ url_for('excluir_status', id=status.id) }}" method="post" class="d-inline delete-form" data-status-id="{{ status.id }}">
+  {{ formularios_exclusao[status.id].csrf_token }}
+
+  <button type="submit" class="btn btn-sm btn-outline-danger delete-button">
+    <i class="bi bi-trash"></i>
+  </button>
+</form>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="4">Nenhum status cadastrado.</td>
+        </tr>
+        {% endfor %}
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+document.querySelectorAll('.delete-form').forEach(form => {
+  form.addEventListener('submit', function (e) {
+    e.preventDefault(); // impede envio imediato
+
+    Swal.fire({
+      title: 'Tem certeza?',
+      text: 'Você não poderá reverter isso!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sim, excluir!',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch(form.action, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': form.querySelector('[name="csrf_token"]').value
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'error') {
+            Swal.fire('Erro', data.message, 'error');
+          } else {
+            Swal.fire('Excluído!', data.message, 'success').then(() => {
+              location.reload(); // recarrega a página após exclusão
+            });
+          }
+        })
+        .catch(() => {
+          Swal.fire('Erro', 'Algo deu errado ao tentar excluir.', 'error');
+        });
+      }
+    });
+  });
+});
+</script>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

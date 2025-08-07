@@ -1,0 +1,11 @@
+<form method="POST">
+  <h4>Alterar tipo de usuário para: <strong>{{ usuario.nome }}</strong></h4>
+
+  <select name="tipo" class="form-select mb-3">
+    <option value="admin" {% if usuario.tipo == 'admin' %}selected{% endif %}>Admin</option>
+    <option value="gerente" {% if usuario.tipo == 'gerente' %}selected{% endif %}>Gerente</option>
+    <option value="funcionario" {% if usuario.tipo == 'funcionario' %}selected{% endif %}>Funcionário</option>
+  </select>
+
+  <button type="submit" class="btn btn-primary">Salvar Permissão</button>
+</form>

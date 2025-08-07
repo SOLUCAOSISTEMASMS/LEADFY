@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% block titulo %}Cadastro de Lead{% endblock %}
+{% block conteudo %}
+<style>
+  .select2-selection__choice {
+  background-color: #0d6efd !important; /* azul Bootstrap */
+  border-color: #0b5ed7 !important;
+  color: #fff !important;
+  font-weight: 500;
+}
+
+</style>
+
+<!-- Estilos Select2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<div class="container mt-5">
+  <div class="card shadow">
+    <div class="card-header bg-primary text-white">
+      <h4 class="mb-0">Cadastro de Lead</h4>
+    </div>
+
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('criar_lead') }}">
+        {{ form.hidden_tag() }}
+
+        <!-- Dados do cliente -->
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="cliente_id" class="form-label">Cliente</label>
+            <select name="cliente_id" id="cliente_id" class="form-select" required>
+              <option value="">Selecione um cliente</option>
+              {% for cliente in clientes %}
+              <option value="{{ cliente.codigo }}"
+                {% if cliente_selecionado and cliente.codigo == cliente_selecionado.codigo %}selected{% endif %}>
+                {{ cliente.nome_fantasia }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="cliente_email" class="form-label">Email</label>
+            <input type="email" id="cliente_email" name="email" class="form-control" required>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="cliente_telefone" class="form-label">Telefone</label>
+            <input type="text" id="cliente_telefone" name="telefone" class="form-control" required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Nome do Contato</label>
+            <input type="text" name="pessoa" value="{{ lead.pessoa if lead else '' }}" class="form-control">
+          </div>
+        </div>
+
+        <!-- Origem e Status -->
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Origem do Lead</label>
+            <select name="origem_id" class="form-select" required>
+              <option value="">Selecione a origem</option>
+              {% for origem in origens %}
+              <option value="{{ origem.id }}">{{ origem.nome }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Status</label>
+            <select name="status_id" class="form-select" required>
+              <option value="">Selecione o status</option>
+              {% for status in status_list %}
+              <option value="{{ status.id }}">{{ status.nome }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <!-- Data de retorno e interesses -->
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Data de Retorno</label>
+            <input type="date" name="data_retorno" class="form-control">
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Interesses</label>
+            <textarea name="interesses" rows="2" class="form-control"></textarea>
+          </div>
+        </div>
+
+        <!-- Observações -->
+        <div class="mb-3">
+          <label class="form-label">Observações internas</label>
+          <textarea name="observacoes" rows="3" class="form-control"></textarea>
+        </div>
+
+        <!-- Produtos e valor -->
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Produtos</label>
+            <select name="produtos_ids" multiple class="form-control" id="produtosSelect" style="width: 100%;">
+              {% for produto in produtos %}
+              <option value="{{ produto.id }}"
+                {% if produto in lead.produtos %}selected{% endif %}>
+                {{ produto.nome }}
+              </option>
+              {% endfor %}
+            </select>
+            <small class="form-text text-muted">Selecione múltiplos produtos usando Ctrl ou Command.</small>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Valor do Lead (R$)</label>
+            <input type="number" name="valor_personalizado" id="valorPersonalizado"
+              class="form-control" step="0.01" required>
+          </div>
+        </div>
+
+        <!-- Botões -->
+        <div class="mt-4 d-flex flex-wrap gap-2">
+          <button type="submit" class="btn btn-outline-primary">
+            <i class="bi bi-check-circle-fill"></i> Salvar Lead
+          </button>
+          <a href="listar" class="btn btn-secondary">Cancelar</a>
+          <a href="{{ url_for('listar_clientes') }}" class="btn btn-outline-success">
+            <i class="bi bi-people-fill"></i> Voltar para Clientes
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts Select2 e cálculo -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Ativa Select2
+    $('#produtosSelect').select2({
+      placeholder: "Selecione os produtos",
+      allowClear: true,
+      width: 'resolve'
+    });
+
+    // Preenche email e telefone com base no cliente
+    const clientes = JSON.parse('{{ clientes_dict | tojson | safe }}');
+    function preencherCampos() {
+      const id = document.getElementById('cliente_id')?.value;
+      const dados = clientes[id] || {};
+      document.getElementById('cliente_email').value = dados.email || '';
+      document.getElementById('cliente_telefone').value = dados.telefone || '';
+    }
+    preencherCampos();
+    document.getElementById('cliente_id')?.addEventListener('change', preencherCampos);
+
+    // Soma valores dos produtos e atualiza o campo de valor personalizado
+    const produtosDict = JSON.parse('{{ produtos_dict | tojson | safe }}');
+    function atualizarValorTotal() {
+      const selecionados = $('#produtosSelect').val() || [];
+      let total = 0;
+
+      selecionados.forEach(id => {
+        if (produtosDict[id]) {
+          total += parseFloat(produtosDict[id]) || 0;
+        }
+      });
+
+      const campoValor = document.getElementById('valorPersonalizado');
+      campoValor.value = total.toFixed(2);
+
+      // 💫 Efeito visual suave para indicar atualização
+      campoValor.classList.add('valor-atualizado');
+      setTimeout(() => campoValor.classList.remove('valor-atualizado'), 400);
+    }
+
+    $('#produtosSelect').on('change', atualizarValorTotal);
+    atualizarValorTotal(); // Executa na inicialização
+  });
+
+  $('#produtosSelect').select2({
+    placeholder: "Escolha os produtos",
+    allowClear: true,
+    width: 'resolve'
+  });
+</script>
+
+<!-- SweetAlert: sucesso ao criar lead -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        {% for category, message in messages %}
+          Swal.fire({
+            icon: '{{ "success" if category|lower == "success" else "warning" if category|lower == "warning" else "error" }}',
+            title: '{{ "🎉 Lead criado com sucesso!" if category|lower == "success" else "Atenção" }}',
+            html: {{ message|tojson }},
+            confirmButtonColor: '{{ "#3085d6" if category|lower == "success" else "#d33" }}',
+            confirmButtonText: 'OK'
+          });
+        {% endfor %}
+      });
+    </script>
+  {% endif %}
+{% endwith %}
+{% endblock %}

@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% block titulo %}
+  {{ 'Editar Lead' if lead else 'Cadastro de Lead' }}
+{% endblock %}
+{% block conteudo %}
+
+<style>
+  .select2-selection__choice {
+    background-color: #0d6efd !important;
+    border-color: #0b5ed7 !important;
+    color: #fff !important;
+    font-weight: 500;
+  }
+  .valor-atualizado {
+    transition: background-color 0.4s ease;
+    background-color: #d4edda;
+  }
+</style>
+
+<!-- Estilos Select2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<div class="container mt-5">
+  <div class="card shadow">
+    <div class="card-header bg-primary text-white">
+      <h4 class="mb-0">{{ 'Editar Lead' if lead else 'Cadastro de Lead' }}</h4>
+    </div>
+
+    <div class="card-body">
+      <form method="POST" action="/editar/{{ lead.id }}">
+        {{ form.hidden_tag() }}
+
+        <!-- Dados do cliente -->
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="cliente_id" class="form-label">Cliente</label>
+            <select name="cliente_id" id="cliente_id" class="form-select" required>
+              {% for cliente in clientes %}
+                <option value="{{ cliente.codigo }}"
+                  {% if cliente.codigo == lead.cliente_id %}selected{% endif %}>
+                  {{ cliente.nome_fantasia }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Email</label>
+            <input type="text" id="cliente_email" value="{{ lead.cliente.email }}" class="form-control" readonly>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Telefone</label>
+            <input type="text" id="cliente_telefone" value="{{ lead.cliente.telefone }}" class="form-control" readonly>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Nome do Contato</label>
+            <input type="text" name="pessoa" value="{{ lead.pessoa }}" class="form-control">
+          </div>
+        </div>
+
+        <!-- Origem e Status -->
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Origem do Lead</label>
+            <select name="origem_id" class="form-select" required>
+              <option value="">Selecione a origem</option>
+              {% for origem in origens %}
+                <option value="{{ origem.id }}" {% if lead.origem_id == origem.id %}selected{% endif %}>
+                  {{ origem.nome }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Status</label>
+            <select name="status_id" class="form-select" required>
+              <option value="">Selecione o status</option>
+              {% for status in status_list %}
+                <option value="{{ status.id }}" {% if lead.status_id == status.id %}selected{% endif %}>
+                  {{ status.nome }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <!-- Produtos e valor -->
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Produtos vinculados</label>
+            <select name="produtos_ids" id="produtosSelect" class="form-control" multiple style="width: 100%;" required>
+              {% for produto in produtos %}
+                <option value="{{ produto.id }}"
+                  {% if produto in lead.produtos %}selected{% endif %}>
+                  {{ produto.nome }} - R$ {{ "%.2f"|format(produto.valor) }}
+                </option>
+              {% endfor %}
+            </select>
+            <small class="form-text text-muted">Segure Ctrl (Windows) ou Command (Mac) para selecionar múltiplos.</small>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Valor do Lead (R$)</label>
+            <input type="text" name="valor_personalizado" id="valor_personalizado"
+              value="{{ lead.valor_personalizado }}" class="form-control">
+          </div>
+        </div>
+
+        <!-- Data e interesses -->
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Data de Retorno</label>
+            <input type="date" name="data_retorno"
+              value="{{ lead.data_retorno|default('', true) }}" class="form-control">
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Interesses</label>
+            <textarea name="interesses" rows="2" class="form-control">{{ lead.interesses }}</textarea>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Observações internas</label>
+          <textarea name="observacoes" rows="3" class="form-control">{{ lead.observacoes }}</textarea>
+        </div>
+
+        <!-- Botões -->
+        <div class="mt-4 d-flex flex-wrap gap-2 justify-content-end">
+          <button type="submit" class="btn btn-outline-primary">
+            <i class="bi bi-check-circle-fill"></i> Salvar Alterações
+          </button>
+          <a href="{{ url_for('listar') }}" class="btn btn-secondary">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Ativa Select2
+    $('#produtosSelect').select2({
+      placeholder: "Selecione os produtos",
+      allowClear: true,
+      width: 'resolve'
+    });
+
+    // Dicionário de valores dos produtos
+    const produtosDict = JSON.parse('{{ produtos_dict | tojson | safe }}');
+
+    function atualizarValorTotal() {
+      const selecionados = $('#produtosSelect').val() || [];
+      let total = 0;
+      selecionados.forEach(id => {
+        if (produtosDict[id]) {
+          total += parseFloat(produtosDict[id]) || 0;
+        }
+      });
+      const campoValor = document.getElementById('valor_personalizado');
+      campoValor.value = total.toFixed(2);
+      campoValor.classList.add('valor-atualizado');
+      setTimeout(() => campoValor.classList.remove('valor-atualizado'), 400);
+    }
+
+    $('#produtosSelect').on('change', atualizarValorTotal);
+    atualizarValorTotal();
+  });
+</script>
+
+{% endblock %}

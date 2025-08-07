@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<div class="container mt-3">
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-primary text-white py-2">
+      <h5 class="mb-0 fw-semibold"><i class="bi bi-person-plus me-2"></i> Cadastro de Cliente</h5>
+    </div>
+
+    <div class="card-body py-3">
+      <ul class="nav nav-tabs mb-3" role="tablist">
+        <li class="nav-item">
+          <a class="nav-link active" data-bs-toggle="tab" href="#dados">Dados do Cliente</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-bs-toggle="tab" href="#contatos">Contatos</a>
+        </li>
+      </ul>
+
+      <div class="tab-content">
+        <div class="tab-pane fade show active" id="dados">
+          <form method="POST" action="{{ url_for('criar_cliente') }}">
+            {{ form.hidden_tag() }}
+
+            <div class="row">
+              <div class="col-md-6 mb-2">
+                {{ form.nome_fantasia.label(class="form-label") }}
+                {{ form.nome_fantasia(class="form-control", required=True) }}
+              </div>
+              <div class="col-md-6 mb-2">
+                {{ form.cpf_cnpj.label(class="form-label") }}
+                {{ form.cpf_cnpj(class="form-control", id="cpf_cnpj") }}
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-2">
+                {{ form.razao_social.label(class="form-label") }}
+                {{ form.razao_social(class="form-control") }}
+              </div>
+              <div class="col-md-6 mb-2">
+                {{ form.status.label(class="form-label") }}
+                {{ form.status(class="form-select") }}
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-2">
+                {{ form.telefone.label(class="form-label") }}
+                {{ form.telefone(class="form-control") }}
+              </div>
+              <div class="col-md-6 mb-2">
+                {{ form.email.label(class="form-label") }}
+                {{ form.email(class="form-control") }}
+              </div>
+            </div>
+
+            <h5 class="mt-3 mb-2 fw-semibold border-bottom pb-1">
+              <i class="bi bi-geo-alt-fill me-2"></i> Endereço
+            </h5>
+
+            <div class="row g-1">
+              <div class="col-md-4">
+                {{ form.cep.label(class="form-label") }}
+                {{ form.cep(class="form-control", id="cep") }}
+              </div>
+              <div class="col-md-8">
+                {{ form.endereco_rua.label(class="form-label") }}
+                {{ form.endereco_rua(class="form-control", id="endereco_rua") }}
+              </div>
+            </div>
+
+            <div class="row g-1 mt-1">
+              <div class="col-md-4">
+                {{ form.endereco_numero.label(class="form-label") }}
+                {{ form.endereco_numero(class="form-control") }}
+              </div>
+              <div class="col-md-4">
+                {{ form.endereco_complemento.label(class="form-label") }}
+                {{ form.endereco_complemento(class="form-control") }}
+              </div>
+            </div>
+
+            <div class="row g-1 mt-1">
+              <div class="col-md-4">
+                {{ form.bairro.label(class="form-label") }}
+                {{ form.bairro(class="form-control", id="bairro") }}
+              </div>
+              <div class="col-md-4">
+                {{ form.cidade.label(class="form-label") }}
+                {{ form.cidade(class="form-control", id="cidade") }}
+              </div>
+              <div class="col-md-4">
+                {{ form.estado.label(class="form-label") }}
+                {{ form.estado(class="form-control", id="estado") }}
+              </div>
+            </div>
+
+            <div class="text-end mt-3">
+              <a href="{{ url_for('listar_clientes') }}" class="btn btn-outline-secondary me-2">Voltar</a>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i> Cadastrar
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="tab-pane fade" id="contatos">
+          <div class="card border-0 mt-2">
+            <div class="card-body py-2">
+              <h5 class="fw-semibold mb-2"><i class="bi bi-chat-square-text me-2"></i> Histórico de Contatos</h5>
+              <p class="text-muted small">O cliente ainda não foi salvo. Após o cadastro, você poderá adicionar contatos aqui.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  $(document).ready(function () {
+    $("#cep").mask("00000-000");
+    $("#cpf_cnpj").on("blur", function () {
+      const valor = $(this).val().replace(/\D/g, "");
+      if (valor.length <= 11) {
+        $(this).mask("000.000.000-00", {reverse: true});
+      } else {
+        $(this).mask("00.000.000/0000-00", {reverse: true});
+      }
+    });
+
+
+    $("#cpf_cnpj").on("blur", function () {
+  const cnpj = $(this).val().replace(/\D/g, "");
+
+  if (cnpj.length === 14) {
+    fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpj}`)
+      .then(response => {
+        if (!response.ok) throw new Error("CNPJ inválido ou não encontrado");
+        return response.json();
+      })
+      .then(data => {
+        $("#razao_social").val(data.razao_social || "");
+        $("#nome_fantasia").val(data.nome_fantasia || "");
+        $("#telefone").val(data.telefone || "");
+        $("#email").val(data.email || "");
+        $("#cep").val(data.cep || "");
+        $("#endereco_rua").val(data.descricao_tipo_de_logradouro + " " + (data.logradouro || ""));
+        $("#endereco_numero").val(data.numero || "");
+        $("#bairro").val(data.bairro || "");
+        $("#cidade").val(data.municipio || "");
+        $("#estado").val(data.uf || "");
+      })
+      .catch((error) => {
+        Swal.fire({
+          icon: "error",
+          title: "Erro ao consultar o CNPJ",
+          text: error.message,
+        });
+      });
+  }
+});
+
+    $("#cep").on("blur", function () {
+      const cep = this.value.replace(/\D/g, "");
+      if (cep.length === 8) {
+        fetch(`https://viacep.com.br/ws/${cep}/json/`)
+          .then(response => response.json())
+          .then(data => {
+            if (!("erro" in data)) {
+              $("#endereco_rua").val(data.logradouro || "");
+              $("#bairro").val(data.bairro || "");
+              $("#cidade").val(data.localidade || "");
+              $("#estado").val(data.uf || "");
+              $("#endereco_numero").focus();
+            }
+          });
+      }
+    });
+  });
+</script>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    {% for category, message in messages %}
+      Swal.fire({
+        icon: '{{ "success" if category == "success" else "error" }}',
+        title: '{{ "Sucesso!" if category == "success" else "Erro!" }}',
+        text: {{ message|tojson }},
+        timer: {{ 2000 if category == "success" else "null" }},
+        showConfirmButton: {{ 'false' if category == 'success' else 'true' }}
+      });
+    {% endfor %}
+  });
+</script>
+  {% endif %}
+{% endwith %}
+{% endblock %}

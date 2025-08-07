@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% block titulo %}Criar Usuário{% endblock %}
+{% block conteudo %}
+
+<div class="container mt-3">
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white py-2">
+      <h6 class="mb-0">Cadastro de Usuário</h6>
+    </div>
+    <div class="card-body p-3">
+      <form action="/criar_usuario" method="POST" id="form_usuario">
+
+        <!-- 🔗 Abas -->
+        <ul class="nav nav-tabs mb-2" id="usuarioTabs" role="tablist">
+          <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#dados">Dados principais</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#extras">Dados adicionais</button>
+          </li>
+        </ul>
+
+        <div class="tab-content" id="usuarioTabsContent">
+          <!-- 🧑 Dados principais -->
+          <div class="tab-pane fade show active" id="dados">
+            <div class="row g-2">
+              <div class="col-lg-6">
+                <label>Nome</label>
+                <input type="text" name="nome" class="form-control form-control-sm" required value="{{ nome or '' }}">
+              </div>
+              <div class="col-lg-6">
+                <label>Nome de usuário</label>
+                <input type="text" name="nome_usuario" class="form-control form-control-sm" required value="{{ nome_usuario or '' }}">
+              </div>
+              <input type="hidden" name="empresa_slug" value="{{ current_user.empresa.slug }}">
+              <div class="col-md-6">
+                <label>Email</label>
+                <input type="email" name="email" class="form-control form-control-sm" value="{{ email or '' }}">
+              </div>
+              <div class="col-md-6">
+                <label>Senha</label>
+                <input type="password" name="senha" class="form-control form-control-sm" required placeholder="Digite a senha">
+              </div>
+              <div class="col-sm-4">
+                <label>Tipo de usuário</label>
+                <select name="tipo" class="form-select form-select-sm">
+                  <option value="vendedor" {% if tipo == 'vendedor' %}selected{% endif %}>Vendedor</option>
+                  <option value="gerente" {% if tipo == 'gerente' %}selected{% endif %}>Gerente</option>
+                  <option value="admin" {% if tipo == 'admin' %}selected{% endif %}>Administrador</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- 📋 Dados adicionais -->
+          <div class="tab-pane fade" id="extras">
+            <div class="row g-2 mt-2">
+              <div class="col-sm-4">
+    <label>Telefone</label>
+    <input type="text" name="telefone" class="form-control form-control-sm">
+  </div>
+              <div class="col-md-4">
+                <label>Documento</label>
+                <input type="text" name="documento" class="form-control form-control-sm" placeholder="CPF ou CNPJ">
+              </div>
+              <div class="col-md-4">
+                <label>Data de nascimento</label>
+                <input type="date" name="nascimento" class="form-control form-control-sm">
+              </div>
+
+              <div class="col-lg-6">
+                <label>Rua</label>
+                <input type="text" name="rua" class="form-control form-control-sm" placeholder="Av. Brasil">
+              </div>
+              <div class="col-sm-2">
+    <label>Número</label>
+    <input type="text" name="numero" class="form-control form-control-sm">
+  </div>
+
+              <div class="col-md-4">
+                <label>Bairro</label>
+                <input type="text" name="bairro" class="form-control form-control-sm" placeholder="Centro">
+              </div>
+              <div class="col-sm-3">
+    <label>CEP</label>
+    <input type="text" name="cep" class="form-control form-control-sm">
+  </div>
+              <div class="col-md-5">
+                <label>Cidade</label>
+                <input type="text" name="cidade" class="form-control form-control-sm" placeholder="Campo Grande">
+              </div>
+              <div class="col-sm-2">
+    <label>Estado</label>
+    <input type="text" name="estado" maxlength="2" class="form-control form-control-sm">
+  </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ✅ Botões -->
+        <div class="text-end mt-3">
+          <a href="{{ url_for('listar_funcionarios') }}" class="btn btn-sm btn-outline-secondary me-2">Cancelar</a>
+          <button type="submit" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-check-circle-fill"></i> Salvar
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+{% if alerta == 'salvo' %}
+<script>
+Swal.fire({
+  title: 'Cadastro realizado com sucesso!',
+  icon: 'success',
+  confirmButtonText: 'OK'
+}).then((result) => {
+  if (result.isConfirmed) {
+    window.location.href = '/listar_funcionarios';
+  }
+});
+
+</script>
+{% elif alerta == 'nome' %}
+<script>
+Swal.fire({
+  icon: 'error',
+  title: 'Nome já cadastrado!',
+  text: 'Já existe um usuário com este nome.',
+  confirmButtonColor: '#d33'
+});
+</script>
+{% elif alerta == 'nome_usuario' %}
+<script>
+Swal.fire({
+  icon: 'error',
+  title: 'Nome de usuário duplicado!',
+  text: 'Este nome de usuário já está em uso. Escolha outro.',
+  confirmButtonColor: '#d33'
+});
+</script>
+{% elif alerta == 'email' %}
+<script>
+Swal.fire({
+  icon: 'error',
+  title: 'E-mail já utilizado!',
+  text: 'Já existe um usuário com este e-mail cadastrado.',
+  confirmButtonColor: '#d33'
+});
+</script>
+{% elif alerta == 'erro_interno' %}
+<script>
+Swal.fire({
+  icon: 'error',
+  title: 'Erro inesperado!',
+  text: 'Não foi possível concluir o cadastro. Tente novamente.',
+  confirmButtonColor: '#d33'
+});
+</script>
+{% endif %}
+{% endblock%}

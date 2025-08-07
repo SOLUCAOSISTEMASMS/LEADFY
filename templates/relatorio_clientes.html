@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block conteudo %}
+
+<style>
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    .print-area, .print-area * {
+      visibility: visible;
+    }
+    .print-area {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      padding: 20px;
+    }
+  }
+</style>
+
+<!-- 🧾 Área visível na tela -->
+<div class="container mt-4">
+
+
+  <!-- 🔎 Filtros -->
+  <form method="GET" action="{{ url_for('relatorio_clientes') }}" class="card card-body shadow-sm mb-4 filtros">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">Data início</label>
+        <input type="date" name="inicio" class="form-control" value="{{ request.args.get('inicio', '') }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Data fim</label>
+        <input type="date" name="fim" class="form-control" value="{{ request.args.get('fim', '') }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Status</label>
+        <select name="status" class="form-select">
+          <option value="">Todos</option>
+          <option value="ativo" {% if request.args.get('status') == 'ativo' %}selected{% endif %}>Ativo</option>
+          <option value="inativo" {% if request.args.get('status') == 'inativo' %}selected{% endif %}>Inativo</option>
+        </select>
+      </div>
+    </div>
+    <div class="text-end mt-3">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-funnel-fill"></i> Filtrar
+      </button>
+    </div>
+  </form>
+
+  <!-- 📊 Botões de ação -->
+  <div class="d-flex justify-content-end mb-3 print-export">
+    <button onclick="window.print()" class="btn btn-outline-primary me-2">
+      <i class="bi bi-printer"></i> Imprimir
+    </button>
+  </div>
+</div>
+
+<!-- 🖨️ Área impressa -->
+<div class="container-fluid mt-4 print-area">
+  {% if clientes %}
+  <h3><i class="bi bi-people-fill"></i> Relação de Clientes</h3>
+  <table class="table table-bordered table-striped table-hover">
+    <thead class="table-light">
+      <tr>
+        <th>Nome</th>
+        <th>Email</th>
+        <th>Status</th>
+        <th>Data de Cadastro</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for cliente in clientes %}
+      <tr>
+        <td>{{ cliente.nome_fantasia }}</td>
+        <td>{{ cliente.email }}</td>
+        <td>{{ cliente.status }}</td>
+        <td>{{ cliente.data_cadastro.strftime('%d/%m/%Y') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="alert alert-warning mt-4">
+    Nenhum cliente encontrado com os filtros selecionados.
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block head_extra %}
+<!-- Se quiser incluir logo ou marca d’água na impressão, dá pra aplicar aqui 😉 -->
+{% endblock %}

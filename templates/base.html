@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block titulo %}Sistema{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+  
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/leads.css') }}">
+
+  <style>
+    body {
+  margin: 15px 10px; /* 15px em cima/baixo, 10px nos lados */
+  padding: 0;
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(135deg, #e0f7fa, #fce4ec);
+  color: #2b2d42;
+}
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 70px;
+      font-family: 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #e0f7fa, #fce4ec);
+      color: #2b2d42;
+      transition: width 0.3s ease;
+      overflow-x: hidden;
+      z-index: 1050;
+    }
+
+    .sidebar:hover {
+      width: 250px;
+    }
+
+    .sidebar .nav-link {
+      color: rgb(37, 37, 37);
+      padding: 10px 15px;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: background 0.2s ease;
+    }
+
+    .sidebar .nav-link:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar .nav-link i {
+      margin-right: 10px;
+    }
+
+    .sidebar .nav-link span {
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .sidebar:hover .nav-link span {
+      opacity: 1;
+    }
+
+    .empresa-header {
+      position: fixed;
+      top: 0;
+      left: 70px;
+      height: 56px;
+      width: calc(100% - 70px);
+      background-color: #c21c1c;
+      color: rgb(250, 234, 234);
+      display: flex;
+      align-items: center;
+      padding: 0 15px;
+      z-index: 1040;
+      transition: left 0.3s ease, width 0.3s ease;
+    }
+
+    .content {
+      margin-top: 56px;
+      margin-left: 70px;
+      padding: 20px;
+      transition: margin-left 0.3s ease;
+    }
+
+    
+    .sidebar .nav-item .nav-link span {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.sidebar:hover .nav-item .nav-link span {
+  opacity: 1;
+}
+/* 🎯 Ajuste do botão "Sair" para manter ícone visível e centralizado */
+.sidebar .nav-item.mt-3.text-center .nav-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 8px;
+}
+
+.sidebar .nav-item.mt-3.text-center .nav-link i {
+  font-size: 1.2rem;
+  margin: 0 auto;
+}
+
+.sidebar .nav-item.mt-3.text-center .nav-link span {
+  font-size: 0.85rem;
+  margin-top: 4px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar:hover .nav-item.mt-3.text-center .nav-link span {
+  opacity: 1;
+}
+
+/* Quando a sidebar está recolhida */
+.sidebar:not(:hover) .sidebar-img {
+  max-width: 40px;
+}
+.sidebar-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 0;
+}
+
+.sidebar-img {
+  max-width: 60px;
+  height: auto;
+  object-fit: contain;      /* garante que a imagem se encaixe sem cortes */
+  overflow: visible;        /* garante que nada fique escondido */
+  border-radius: 0;         /* sem arredondamento que corte cantos */
+}
+
+
+.nome-sistema {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #424141 !important;
+  margin-top: 5px;
+  white-space: nowrap;
+  transition: none;
+}
+.sidebar .nav-link:hover {
+  background-color: rgba(0, 0, 0, 0.07); /* leve fundo ao passar o mouse */
+  border-radius: 6px;
+  color: #c21c1c; /* vermelho da sua header para combinar */
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.sidebar::-webkit-scrollbar {
+  display: none;
+}
+
+  </style>
+</head>
+<body>
+{% if current_user.is_authenticated %}
+
+<!-- 📌 Sidebar lateral -->
+<div class="sidebar">
+  <div class="sidebar-logo text-center py-3">
+  <img src="{{ url_for('static', filename='imagens/logo2.png') }}" alt="Logo" class="sidebar-img mb-2">
+  <h4 class="nome-sistema">LeadFy</h4>
+</div>
+
+
+  <ul class="nav flex-column mt-3">
+  <!-- Início -->
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for('dashboard') }}">
+      <i class="bi bi-house-door-fill"></i>
+      <span>Início</span>
+    </a>
+  </li>
+
+  <!-- Menu Cadastrar -->
+  <li class="nav-item">
+    <a class="nav-link dropdown-toggle" href="#" onclick="toggleDropdown('menuCadastrar')">
+      <i class="bi bi-pencil-square"></i> <span>Cadastrar</span>
+    </a>
+    <ul class="nav flex-column submenu d-none" id="menuCadastrar">
+      <li class="nav-item"><a class="nav-link" href="{{ url_for('listar') }}"><i class="bi bi-person-plus-fill"></i> <span>Leads</span></a></li>
+      <li class="nav-item"><a class="nav-link" href="{{ url_for('listar_clientes') }}"><i class="bi bi-person-video2"></i> <span>Clientes</span></a></li>
+      <li class="nav-item">
+  <a class="nav-link" href="{{ url_for('produto.listar_produto_html') }}">
+    <i class="bi bi-box-seam"></i> Cadastrar Produto
+  </a>
+</li>
+
+      <li class="nav-item"><a class="nav-link" href="{{ url_for('listar_funcionarios') }}"><i class="bi bi-person-badge-fill"></i> <span>Funcionários</span></a></li>
+      <li class="nav-item"><a class="nav-link" href="{{ url_for('gerenciar_origens') }}"><i class="bi bi-signpost-split"></i> <span>Origens</span></a></li>
+      <li class="nav-item"><a class="nav-link" href="{{ url_for('gerenciar_status') }}"><i class="bi bi-list-check"></i> <span>Status</span></a></li>
+    </ul>
+  </li>
+
+  <!-- Menu Relatórios -->
+  <li class="nav-item">
+    <a class="nav-link dropdown-toggle" href="#" onclick="toggleDropdown('menuRelatorios')">
+      <i class="bi bi-bar-chart-line-fill"></i> <span>Relatórios</span>
+    </a>
+    <ul class="nav flex-column submenu d-none" id="menuRelatorios">
+      <li class="nav-item"><a class="nav-link" href="{{ url_for('relatorio_clientes') }}"><i class="bi bi-folder-fill"></i> <span>Clientes</span></a></li>
+      <li class="nav-item"><a class="nav-link" href="{{ url_for('relatorio.relatorio_leads') }}"><i class="bi bi-journal-text"></i> <span>Leads</span></a></li>
+    </ul>
+  </li>
+
+  <!-- Menu Empresa -->
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for('minha_empresa') }}">
+      <i class="bi bi-building-fill"></i> <span>Minha Empresa</span>
+    </a>
+  </li>
+
+  <!-- Menu Admin -->
+  {% if current_user.tipo == 'admin' %}
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for('painel_logs') }}">
+      <i class="bi bi-shield-check"></i> <span>Auditoria</span>
+    </a>
+  </li>
+  {% endif %}
+
+  <!-- Sair (sem mt-3) -->
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for('logout') }}">
+      <i class="bi bi-box-arrow-right"></i> <span>Sair</span>
+    </a>
+  </li>
+</ul>
+</div>
+
+
+<!-- 🏢 Header da empresa -->
+<header class="empresa-header">
+  <div class="usuario-logado" style="white-space: nowrap;">
+  Logado como: <strong>{{ current_user.nome }}</strong>
+</div>
+
+  {% if empresa %}
+  <div class="alert text-center mb-0 rounded-0 w-100">
+    Você está na empresa: <strong>{{ empresa.nome }}</strong> - (<strong>{{ empresa.documento }}</strong>)
+  </div>
+  {% endif %}
+</header>
+
+<!-- 📄 Conteúdo principal -->
+<div class="content">
+  {% block conteudo %}{% endblock %}
+</div>
+
+{% endif %}
+{% block scripts %}{% endblock %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function toggleDropdown(id) {
+    const el = document.getElementById(id);
+    if (el) {
+      el.classList.toggle('d-none');
+    }
+  }
+</script>
+
+</body>
+</html>

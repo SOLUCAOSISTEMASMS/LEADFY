@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block conteudo %}
+
+<style>
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    .print-area, .print-area * {
+      visibility: visible;
+    }
+    .print-area {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      padding: 20px;
+    }
+  }
+
+  
+</style>
+
+<div class="container-fluid mt-4 print-area">
+
+  <!-- 🧑 Detalhes do Cliente -->
+  <h3><i class="bi bi-person-vcard-fill"></i> Detalhes do Cliente</h3>
+  <div class="card border-primary mb-4">
+    <div class="card-body">
+      <h5 class="card-title fw-bold">{{ cliente.nome_fantasia }}</h5>
+      <p><strong>Email:</strong> {{ cliente.email }}</p>
+      <p><strong>Telefone:</strong> {{ cliente.telefone }}</p>
+      {% if cliente.empresa %}
+        <p><strong>Empresa:</strong> {{ cliente.empresa }}</p>
+      {% endif %}
+
+      <hr>
+      <h6 class="fw-bold"><i class="bi bi-geo-alt-fill text-danger me-1"></i> Endereço</h6>
+      <p><strong>Rua:</strong> {{ cliente.endereco_rua or '—' }}</p>
+      <p><strong>Número:</strong> {{ cliente.endereco_numero or '—' }}</p>
+      <p><strong>Complemento:</strong> {{ cliente.endereco_complemento or '—' }}</p>
+      <p><strong>Bairro:</strong> {{ cliente.bairro or '—' }}</p>
+      <p><strong>Cidade:</strong> {{ cliente.cidade or '—' }}</p>
+      <p><strong>Estado:</strong> {{ cliente.estado or '—' }}</p>
+      <p><strong>CEP:</strong> {{ cliente.rmcep or '—' }}</p>
+    </div>
+  </div>
+
+  <!-- 💬 Contatos -->
+  <h5><i class="bi bi-chat-square-text"></i> Contatos</h5>
+  {% if cliente.contatos %}
+    <ul class="list-group mb-3">
+      {% for contato in contatos %}
+        <li class="list-group-item">
+          <strong>{{ contato.assunto }}</strong>
+          <small class="text-muted d-block">{{ contato.data.strftime('%d/%m/%Y %H:%M') }}</small>
+          <p>{{ contato.descricao }}</p>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted">Nenhum contato registrado para este cliente.</p>
+  {% endif %}
+</div>
+
+  <!-- Botões de ação -->
+  <a href="{{ url_for('novo_contato', cliente_codigo=cliente.codigo) }}" class="btn btn-success">
+    <i class="bi bi-plus-circle"></i> Adicionar Contato
+  </a>
+  <a href="{{ url_for('editar_cliente', cliente_codigo=cliente.codigo) }}" class="btn btn-warning ms-2">Editar Cliente</a>
+  <a href="#" class="btn btn-dark ms-2" onclick="window.print()">
+    <i class="bi bi-printer-fill"></i> Imprimir Detalhes
+  </a>
+  <a href="{{ url_for('listar_clientes') }}" class="btn btn-secondary ms-2">Voltar à Lista</a>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for category, message in messages %}
+    {% if message == 'contato_salvo' and category == 'success' %}
+    <script>
+      Swal.fire({
+        title: 'Contato salvo!',
+        text: 'O novo contato foi registrado com sucesso.',
+        icon: 'success',
+        confirmButtonColor: '#3085d6'
+      });
+    </script>
+    {% endif %}
+  {% endfor %}
+{% endwith %}
+
+{% endblock %}
