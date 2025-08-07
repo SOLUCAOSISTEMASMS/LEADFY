@@ -48,7 +48,6 @@ from models import (
 )
 
 
-
 # App Flask
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data/empresa.db'
@@ -56,11 +55,14 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config.from_object(config)
 app.secret_key = 'uma-chave-bem-secreta'
 
-
 # Extensões
 db.init_app(app)
 migrate = Migrate(app, db)
 csrf = CSRFProtect(app)
+
+# Criação automática do banco
+with app.app_context():
+    db.create_all()
 
 # Login
 login_manager = LoginManager()
